@@ -126,7 +126,20 @@ public class MainWindow extends javax.swing.JFrame {
                 }
             }
         }
+        
         songTime.setText(timeString);
+        if (seconds < jProgressBar1.getMaximum())
+        {
+            jProgressBar1.setValue(seconds);
+        }
+        else
+        {
+            jProgressBar1.setValue(0);
+            decThread.stopPlaying();
+            st.timeThread.interrupt();
+            st = new SongTimer();
+            
+        }
     }
     
     
@@ -316,7 +329,7 @@ public class MainWindow extends javax.swing.JFrame {
                                             .addComponent(yearLabel, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                                         .addGap(0, 0, Short.MAX_VALUE))))
                             .addGroup(layout.createSequentialGroup()
-                                .addGap(177, 177, 177)
+                                .addGap(180, 180, 180)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -350,10 +363,11 @@ public class MainWindow extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(songTime)
                             .addComponent(endTime))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 45, Short.MAX_VALUE)
+                        .addGap(18, 18, 18)
                         .addComponent(jButton2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jButton3))))
+                        .addComponent(jButton3)))
+                .addContainerGap(25, Short.MAX_VALUE))
         );
 
         pack();
@@ -389,6 +403,12 @@ public class MainWindow extends javax.swing.JFrame {
             String streamURL = api.getSongURL(songList.get(selectedIndex)).toString();
             decThread = decThread.startPlayingStream(streamURL, -15.0f);
             st.start();
+            jProgressBar1.setMinimum(0);
+            long lduration = relatedSong.duration;
+            lduration = lduration / 1000;
+            int duration = safeLongToInt(lduration);
+            
+            jProgressBar1.setMaximum(duration);
             endTime.setText(secondsToTimer(relatedSong.duration / 1000));
         } catch (URISyntaxException ex) {
             Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
@@ -397,6 +417,14 @@ public class MainWindow extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jButton2ActionPerformed
 
+    public static int safeLongToInt(long l) {
+    if (l < Integer.MIN_VALUE || l > Integer.MAX_VALUE) {
+        throw new IllegalArgumentException
+            (l + " cannot be cast to int without changing its value.");
+    }
+    return (int) l;
+}
+    
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         System.out.println("Stop");
         decThread.stopPlaying();
