@@ -37,6 +37,7 @@ public class MainWindow extends javax.swing.JFrame {
     public List<Song> songList;
     public List<JTSong> displaySongList;
     public int selectedIndex;
+    private SongTimer st = new SongTimer();
 
     /**
      * Creates new form MainWindow
@@ -58,6 +59,77 @@ public class MainWindow extends javax.swing.JFrame {
         //tableModel.addRow(new Object[]{"I Appear Missing","Queens of the Stone Age","...Like Clockwork","Hard Rock","2013"});
     }
 
+    int minutesprefix = 0;
+    
+    public int findMins(long seconds)
+    {
+        int count = 0;
+        while (seconds >= 60)
+        {
+            seconds = seconds - 60;
+            count = count + 1;
+        }
+        return count;
+    }
+    
+    public String secondsToTimer(long seconds)
+    {
+        int sminutesprefix = 0;
+        String timeString = "";
+        
+        if (seconds < 10) {
+            timeString = "0:0" + Long.toString(seconds);
+        } else if (seconds >= 10 && seconds < 60) {
+            timeString = "0:" + Long.toString(seconds);
+        } else {
+            long remaindero = seconds % 60;
+            sminutesprefix = findMins(seconds);
+            if (remaindero == 0) {
+                
+                timeString = Integer.toString(sminutesprefix) + ":00";
+            } else {
+                long remainder = seconds % 60;
+
+                if (remainder < 10) {
+                    String finalnumber = Long.toString(remainder);
+                    timeString = Integer.toString(sminutesprefix) + ":0" + finalnumber;
+                } else {
+                    String finalnumber = Long.toString(remainder);
+                    timeString = Integer.toString(sminutesprefix) + ":" + finalnumber;
+                }
+            }
+        }
+        
+        return timeString;
+    }
+    
+    public void setSongTime(int seconds) {
+        String timeString = "";
+        if (seconds < 10) {
+            timeString = "0:0" + Integer.toString(seconds);
+        } else if (seconds >= 10 && seconds < 60) {
+            timeString = "0:" + Integer.toString(seconds);
+        } else {
+            int remaindero = seconds % 60;
+            if (remaindero == 0) {
+                minutesprefix++;
+                timeString = Integer.toString(minutesprefix) + ":00";
+            } else {
+                int remainder = seconds % 60;
+
+                if (remainder < 10) {
+                    String finalnumber = Integer.toString(remainder);
+                    timeString = Integer.toString(minutesprefix) + ":0" + finalnumber;
+                } else {
+                    String finalnumber = Integer.toString(remainder);
+                    timeString = Integer.toString(minutesprefix) + ":" + finalnumber;
+                }
+            }
+        }
+        songTime.setText(timeString);
+    }
+    
+    
     public BufferedImage scaleImage(BufferedImage img, int width, int height) {
         int imgWidth = img.getWidth();
         int imgHeight = img.getHeight();
@@ -107,12 +179,14 @@ public class MainWindow extends javax.swing.JFrame {
 
             for (Song s : songList) {
                 String year = Integer.toString(s.getYear());
+                long dur = s.getDurationMillis();
                 if (year.equals("0"))
                 {
                     year = "";
                 
                 }
                 JTSong tempSong = new JTSong(s.getTitle(), s.getArtist(), s.getAlbum(), s.getGenre(), year);
+                tempSong.duration = dur;
                 if (s.getAlbumArtUrl() == null) {
                     tempSong.artworkURL = "http://s.iosfans.com/?u=http://i165.photobucket.com/albums/u61/deveelryuk/carrierrequests/noartplaceholder_darkgrey.png";
                 } else {
@@ -149,11 +223,6 @@ public class MainWindow extends javax.swing.JFrame {
         jTable1 = new javax.swing.JTable();
         jButton1 = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
-        jLabel5 = new javax.swing.JLabel();
-        jLabel6 = new javax.swing.JLabel();
         jProgressBar1 = new javax.swing.JProgressBar();
         jButton2 = new javax.swing.JButton();
         titleLabel = new javax.swing.JLabel();
@@ -162,6 +231,8 @@ public class MainWindow extends javax.swing.JFrame {
         genreLabel = new javax.swing.JLabel();
         yearLabel = new javax.swing.JLabel();
         jButton3 = new javax.swing.JButton();
+        songTime = new javax.swing.JLabel();
+        endTime = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -185,16 +256,6 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
 
-        jLabel2.setText("Title:");
-
-        jLabel3.setText("Artist:");
-
-        jLabel4.setText("Album:");
-
-        jLabel5.setText("Genre:");
-
-        jLabel6.setText("Year:");
-
         jButton2.setText("Play");
         jButton2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -202,15 +263,15 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
 
-        titleLabel.setText(" ");
+        titleLabel.setText("Title:");
 
-        artistLabel.setText(" ");
+        artistLabel.setText("Artist:");
 
-        albumLabel.setText(" ");
+        albumLabel.setText("Album:");
 
-        genreLabel.setText(" ");
+        genreLabel.setText("Genre:");
 
-        yearLabel.setText(" ");
+        yearLabel.setText("Year:");
 
         jButton3.setText("Stop");
         jButton3.addActionListener(new java.awt.event.ActionListener() {
@@ -218,6 +279,10 @@ public class MainWindow extends javax.swing.JFrame {
                 jButton3ActionPerformed(evt);
             }
         });
+
+        songTime.setText("0:00");
+
+        endTime.setText("0:00");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -235,25 +300,23 @@ public class MainWindow extends javax.swing.JFrame {
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(layout.createSequentialGroup()
                                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(jLabel2)
-                                            .addComponent(jLabel3)
-                                            .addComponent(jLabel4)
-                                            .addComponent(jLabel5)
-                                            .addComponent(jLabel6))
-                                        .addGap(18, 18, 18)
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(titleLabel)
-                                            .addComponent(artistLabel)
-                                            .addComponent(albumLabel)
-                                            .addComponent(genreLabel)
-                                            .addComponent(yearLabel))
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                            .addComponent(titleLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                            .addComponent(artistLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                        .addGap(10, 10, 10)
                                         .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE))
                                     .addGroup(layout.createSequentialGroup()
-                                        .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 427, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                            .addComponent(albumLabel, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                            .addComponent(genreLabel, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                                .addComponent(songTime)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addComponent(endTime))
+                                            .addComponent(jProgressBar1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 427, Short.MAX_VALUE)
+                                            .addComponent(yearLabel, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                                         .addGap(0, 0, Short.MAX_VALUE))))
                             .addGroup(layout.createSequentialGroup()
-                                .addGap(188, 188, 188)
+                                .addGap(177, 177, 177)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -272,32 +335,25 @@ public class MainWindow extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel2)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jLabel3)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jLabel4)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jLabel5)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jLabel6))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                 .addComponent(titleLabel)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(artistLabel)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(albumLabel)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(genreLabel)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(yearLabel)))
+                                .addComponent(artistLabel)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(albumLabel)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(genreLabel)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(yearLabel)
                         .addGap(27, 27, 27)
                         .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(songTime)
+                            .addComponent(endTime))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 45, Short.MAX_VALUE)
                         .addComponent(jButton2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jButton3)))
-                .addContainerGap(25, Short.MAX_VALUE))
+                        .addComponent(jButton3))))
         );
 
         pack();
@@ -318,11 +374,11 @@ public class MainWindow extends javax.swing.JFrame {
             BufferedImage currArt = ImageIO.read(new URL(relatedSong.artworkURL));
             currArt = scaleImage(currArt, 256, 256);
             jLabel1.setIcon(new ImageIcon(currArt));
-            titleLabel.setText(relatedSong.title);
-            artistLabel.setText(relatedSong.artist);
-            albumLabel.setText(relatedSong.album);
-            genreLabel.setText(relatedSong.genre);
-            yearLabel.setText(relatedSong.year);
+            titleLabel.setText("Title:   " + relatedSong.title);
+            artistLabel.setText("Artist:    " + relatedSong.artist);
+            albumLabel.setText("Album:   " + relatedSong.album);
+            genreLabel.setText("Genre:   " + relatedSong.genre);
+            yearLabel.setText("Year:      " + relatedSong.year);
             
             
 
@@ -332,6 +388,8 @@ public class MainWindow extends javax.swing.JFrame {
         try {
             String streamURL = api.getSongURL(songList.get(selectedIndex)).toString();
             decThread = decThread.startPlayingStream(streamURL, -15.0f);
+            st.start();
+            endTime.setText(secondsToTimer(relatedSong.duration / 1000));
         } catch (URISyntaxException ex) {
             Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
@@ -342,7 +400,8 @@ public class MainWindow extends javax.swing.JFrame {
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         System.out.println("Stop");
         decThread.stopPlaying();
-        
+        st.timeThread.interrupt();
+        st = new SongTimer();
     }//GEN-LAST:event_jButton3ActionPerformed
 
     /**
@@ -383,19 +442,16 @@ public class MainWindow extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel albumLabel;
     private javax.swing.JLabel artistLabel;
+    private javax.swing.JLabel endTime;
     private javax.swing.JLabel genreLabel;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
     private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTable jTable1;
+    private javax.swing.JLabel songTime;
     private javax.swing.JLabel titleLabel;
     private javax.swing.JLabel yearLabel;
     // End of variables declaration//GEN-END:variables

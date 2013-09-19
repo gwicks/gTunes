@@ -17,6 +17,7 @@ public class JTSong {
     public String genre;
     public String year;
     public String artworkURL;
+    public long duration;
 
     public JTSong(String title, String artist, String album, String genre, String year) {
         this.title = title;
